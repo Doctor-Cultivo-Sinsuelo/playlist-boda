@@ -370,8 +370,10 @@
 
   <div class="spotify-caption">🎵 Nuestra canción</div>
   <div class="spotify-embed-wrap">
-    <iframe id="spotifyFrame" style="border-radius:12px" data-src="https://open.spotify.com/embed/track/6SKwQghsR8AISlxhcwyA9R?utm_source=generator&autoplay=1" width="100%" height="152" frameborder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+    <div id="spotifyEmbed"></div>
   </div>
+
+  <script src="https://open.spotify.com/embed/iframe-api/v1" async></script>
 
   <div class="form-embed-wrap">
     <!-- PEGA AQUÍ el link de "Insertar HTML" de tu Google Form (el que está
@@ -391,14 +393,33 @@
 
 <script>
 
+  // ============ SPOTIFY: API oficial con play() real ============
+  let spotifyController = null;
+  let wantsAutoplay = false;
+
+  window.onSpotifyIframeApiReady = (IFrameAPI) => {
+    const element = document.getElementById('spotifyEmbed');
+    const options = {
+      uri: 'spotify:track:6SKwQghsR8AISlxhcwyA9R',
+      width: '100%',
+      height: 152
+    };
+    IFrameAPI.createController(element, options, (EmbedController) => {
+      spotifyController = EmbedController;
+      // si el usuario ya le dio "entrar" antes de que esto terminara de cargar
+      if (wantsAutoplay) spotifyController.play();
+    });
+  };
+
   // ============ PANTALLA "TOCA PARA ENTRAR" ============
   const entryOverlay = document.getElementById('entryOverlay');
-  const spotifyFrame = document.getElementById('spotifyFrame');
   entryOverlay.addEventListener('click', () => {
     // este clic ES la interacción del usuario que los navegadores piden
     // para permitir que el audio con sonido pueda arrancar solo
-    if (spotifyFrame && !spotifyFrame.src) {
-      spotifyFrame.src = spotifyFrame.dataset.src;
+    if (spotifyController) {
+      spotifyController.play();
+    } else {
+      wantsAutoplay = true; // el API todavía no cargaba, se reproduce en cuanto esté lista
     }
     entryOverlay.classList.add('hidden');
     document.body.style.overflow = 'auto';
@@ -640,3 +661,4 @@
 </script>
 
 </body>
+</html>
